@@ -25,7 +25,11 @@ jobs:
       - name: Install and add Android
         working-directory: prottasha-app
         run: |
+          echo "---- package.json ----"; cat package.json
+          echo "---- files ----"; ls -la
           npm install
+          npm install @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6 @capacitor/app@6
+          npx cap --version
           npx cap add android
 
       - name: App icon
