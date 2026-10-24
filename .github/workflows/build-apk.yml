@@ -1,0 +1,42 @@
+name: Build APK from zip
+on:
+  push: { branches: [main, master] }
+  workflow_dispatch:
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Unzip project
+        run: |
+          unzip -q prottasha-academy-app.zip
+          ls -la prottasha-app
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: 17 }
+      - name: Install and add Android
+        working-directory: prottasha-app
+        run: |
+          npm install
+          npx cap add android
+      - name: App icon
+        working-directory: prottasha-app
+        continue-on-error: true
+        run: npx capacitor-assets generate --android --iconBackgroundColor '#ffffff'
+      - name: Permissions
+        working-directory: prottasha-app
+        run: |
+          f=android/app/src/main/AndroidManifest.xml
+          grep -q "android.permission.CAMERA" $f || sed -i 's#<uses-permission android:name="android.permission.INTERNET" />#<uses-permission android:name="android.permission.INTERNET" />\n    <uses-permission android:name="android.permission.CAMERA" />\n    <uses-permission android:name="android.permission.RECORD_AUDIO" />\n    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />#' $f
+          grep -n "permission" $f
+      - name: Sync
+        working-directory: prottasha-app
+        run: npx cap sync android
+      - name: Build debug APK
+        working-directory: prottasha-app/android
+        run: chmod +x gradlew && ./gradlew assembleDebug
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Prottasha-Academy-APK
+          path: prottasha-app/android/app/build/outputs/apk/debug/app-debug.apk
