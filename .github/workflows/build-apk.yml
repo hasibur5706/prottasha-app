@@ -25,10 +25,13 @@ jobs:
         run: |
           mkdir -p android/app/src/main/res/drawable
           cp resources/ic_stat_logo.xml android/app/src/main/res/drawable/ic_stat_logo.xml
-      - name: App icon and splash (your logo)
+      - name: Apply your logo (launcher icon + splash screen)
         working-directory: prottasha-app
-        continue-on-error: true
-        run: npx capacitor-assets generate --android --iconBackgroundColor '#ffffff' --splashBackgroundColor '#ffffff' --splashBackgroundColorDark '#ffffff'
+        run: |
+          res=android/app/src/main/res
+          find $res -name 'splash.png' -delete
+          cp -r resources/android-res/. $res/
+          echo "--- icons installed:"; ls -la $res/mipmap-xxxhdpi $res/mipmap-anydpi-v26 $res/drawable || true
       - name: Permissions (camera, microphone, notifications)
         working-directory: prottasha-app
         run: |
